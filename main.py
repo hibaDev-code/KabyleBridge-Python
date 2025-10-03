@@ -5,260 +5,370 @@ import random
 from datetime import datetime
 
 
-class Student:
-    def __init__(self, name, native_language):
-        self.name = name
-        self.native_language = native_language
-        self.learned_phrases = []
-        self.quiz_scores = []
-        self.current_situation = None
-        self.progress = {
-            'total_phrases': 0,
-            'phrases_learned': 0,
-            'average_score': 0,
-            'last_activity': None
+class Etudiant:
+    def __init__(self, nom, langue_native):
+        self.nom = nom
+        self.langue_native = langue_native
+        self.phrases_apprises = []
+        self.scores_quiz = []
+        self.situation_actuelle = None
+        self.progression = {
+            'phrases_totales': 0,
+            'phrases_apprises': 0,
+            'score_moyen': 0,
+            'derniere_activite': None
         }
 
-    def add_learned_phrase(self, phrase):
-        if phrase not in self.learned_phrases:
-            self.learned_phrases.append(phrase)
-            self.progress['phrases_learned'] = len(self.learned_phrases)
+    def ajouter_phrase_apprise(self, phrase):
+        if phrase not in self.phrases_apprises:
+            self.phrases_apprises.append(phrase)
+            self.progression['phrases_apprises'] = len(self.phrases_apprises)
 
-    def add_quiz_score(self, score):
-        self.quiz_scores.append(score)
-        if self.quiz_scores:
-            self.progress['average_score'] = sum(self.quiz_scores) / len(self.quiz_scores)
-        self.progress['last_activity'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    def ajouter_score_quiz(self, score):
+        self.scores_quiz.append(score)
+        if self.scores_quiz:
+            self.progression['score_moyen'] = sum(self.scores_quiz) / len(self.scores_quiz)
+        self.progression['derniere_activite'] = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
 class Phrase:
-    def __init__(self, kabyle, english, french, category, situation, difficulty=1):
+    def __init__(self, kabyle, anglais, francais, categorie, situation, difficulte=1):
         self.kabyle = kabyle
-        self.english = english
-        self.french = french
-        self.category = category
+        self.anglais = anglais
+        self.francais = francais
+        self.categorie = categorie
         self.situation = situation
-        self.difficulty = difficulty
-        self.times_practiced = 0
-        self.times_correct = 0
+        self.difficulte = difficulte
+        self.fois_pratiquee = 0
+        self.fois_correct = 0
 
-    def get_success_rate(self):
-        if self.times_practiced == 0:
+    def get_taux_reussite(self):
+        if self.fois_pratiquee == 0:
             return 0
-        return (self.times_correct / self.times_practiced) * 100
+        return (self.fois_correct / self.fois_pratiquee) * 100
 
 
-class CulturalBot:
+class BotCulturel:
     def __init__(self):
-        self.phrases = self.load_phrases()
+        self.phrases = self.charger_phrases()
         self.situations = {
-            'cafe': 'Coffee Shop Ordering',
-            'campus': 'Campus Navigation',
-            'market': 'Market Shopping',
-            'greetings': 'Basic Greetings'
+            'cafe': 'Commander au Café',
+            'campus': 'Navigation sur le Campus',
+            'marche': 'Shopping au Marché',
+            'salutations': 'Salutations de Base'
         }
 
-    def load_phrases(self):
-        phrase_data = [
-            {"kabyle": "Azul", "english": "Hello", "french": "Bonjour", "category": "greeting",
-             "situation": "greetings"},
-            {"kabyle": "Sbaḥ lxir", "english": "Good morning", "french": "Bonjour", "category": "greeting",
-             "situation": "greetings"},
-            {"kabyle": "Tanemmirt", "english": "Thank you", "french": "Merci", "category": "courtesy",
-             "situation": "greetings"},
-            {"kabyle": "Ḥwajeɣ lqahwa", "english": "I want coffee", "french": "Je veux du café", "category": "ordering",
-             "situation": "cafe"},
-            {"kabyle": "acehal i wa?", "english": "How much is this?", "french": "C'est combien?",
-             "category": "price", "situation": "cafe"},
+    def charger_phrases(self):
+        donnees_phrases = [
+            {"kabyle": "Azul", "anglais": "Hello", "francais": "Bonjour", "categorie": "salutation",
+             "situation": "salutations"},
+            {"kabyle": "Sbaḥ lxir", "anglais": "Good morning", "francais": "Bonjour", "categorie": "salutation",
+             "situation": "salutations"},
+            {"kabyle": "Tanemmirt", "anglais": "Thank you", "francais": "Merci", "categorie": "courtoisie",
+             "situation": "salutations"},
+            {"kabyle": "Ḥwajeɣ takwa", "anglais": "I want coffee", "francais": "Je veux du café",
+             "categorie": "commande", "situation": "cafe"},
+            {"kabyle": "Wagi amek ayɣa?", "anglais": "How much is this?", "francais": "C'est combien?",
+             "categorie": "prix", "situation": "cafe"},
         ]
 
-        return [Phrase(**data) for data in phrase_data]
+        return [Phrase(**donnees) for donnees in donnees_phrases]
 
-    def translate(self, english_text, situation=None):
+    def traduire(self, texte_anglais, situation=None):
         for phrase in self.phrases:
-            if english_text.lower() in phrase.english.lower():
+            if texte_anglais.lower() in phrase.anglais.lower():
                 return phrase
         return None
 
 
-class KabyleConnectApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Kabyle Connect - Cultural Bridge")
-        self.root.geometry("1000x750")
-        self.root.configure(bg='#fff9e6')
+class ApplicationKabyleConnect:
+    def __init__(self, racine):
+        self.racine = racine
+        self.racine.title("Kabyle Connect - Pont Culturel")
+        self.racine.geometry("1000x750")
+        self.racine.configure(bg='#fff9e6')
 
-        # Configure color scheme
-        self.colors = {
-            'primary': '#fff9e6',
-            'secondary': '#e6f7ff',
+        # Configuration du schéma de couleurs
+        self.couleurs = {
+            'primaire': '#fff9e6',
+            'secondaire': '#e6f7ff',
             'accent1': '#f0ffe6',
             'accent2': '#ffe6e6',
-            'text': '#2c3e50',
-            'button': '#4a90e2'
+            'texte': '#2c3e50',
+            'bouton': '#4a90e2'
         }
 
-        self.cultural_bot = CulturalBot()
-        self.current_student = None
+        self.bot_culturel = BotCulturel()
+        self.etudiant_actuel = None
 
-        self.setup_gui()
+        self.configurer_interface()
 
-    def setup_gui(self):
-        # Style configuration
+    def configurer_interface(self):
+        # Configuration du style
         style = ttk.Style()
         style.theme_use('clam')
 
-        # Configure styles
-        style.configure('TFrame', background=self.colors['primary'])
-        style.configure('TLabel', background=self.colors['primary'], foreground=self.colors['text'], font=('Arial', 10))
-        style.configure('TButton', font=('Arial', 10, 'bold'), background=self.colors['button'], foreground='white')
+        # Configuration des styles
+        style.configure('TFrame', background=self.couleurs['primaire'])
+        style.configure('TLabel', background=self.couleurs['primaire'], foreground=self.couleurs['texte'],
+                        font=('Arial', 10))
+        style.configure('TButton', font=('Arial', 10, 'bold'), background=self.couleurs['bouton'], foreground='white')
 
-        # Main container
-        self.main_frame = ttk.Frame(self.root, style='TFrame')
-        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=25, pady=25)
+        # Conteneur principal
+        self.cadre_principal = ttk.Frame(self.racine, style='TFrame')
+        self.cadre_principal.pack(fill=tk.BOTH, expand=True, padx=25, pady=25)
 
-        self.show_welcome_screen()
+        self.afficher_ecran_accueil()
 
-    def create_gradient_header(self, parent, title, subtitle=None):
-        """Create a beautiful header with gradient effect"""
-        header_frame = tk.Frame(parent, bg=self.colors['secondary'], height=120, relief='raised', bd=1)
-        header_frame.pack(fill='x', pady=(0, 20))
-        header_frame.pack_propagate(False)
+    def creer_en_tete_degradé(self, parent, titre, sous_titre=None):
+        """Crée un en-tête avec effet de dégradé"""
+        cadre_en_tete = tk.Frame(parent, bg=self.couleurs['secondaire'], height=120, relief='raised', bd=1)
+        cadre_en_tete.pack(fill='x', pady=(0, 20))
+        cadre_en_tete.pack_propagate(False)
 
-        title_label = tk.Label(header_frame, text=title,
+        label_titre = tk.Label(cadre_en_tete, text=titre,
                                font=('Arial', 24, 'bold'),
-                               bg=self.colors['secondary'],
-                               fg=self.colors['text'],
+                               bg=self.couleurs['secondaire'],
+                               fg=self.couleurs['texte'],
                                pady=20)
-        title_label.pack(expand=True)
+        label_titre.pack(expand=True)
 
-        if subtitle:
-            subtitle_label = tk.Label(header_frame, text=subtitle,
-                                      font=('Arial', 12),
-                                      bg=self.colors['secondary'],
-                                      fg='#7f8c8d')
-            subtitle_label.pack(expand=True)
+        if sous_titre:
+            label_sous_titre = tk.Label(cadre_en_tete, text=sous_titre,
+                                        font=('Arial', 12),
+                                        bg=self.couleurs['secondaire'],
+                                        fg='#7f8c8d')
+            label_sous_titre.pack(expand=True)
 
-        return header_frame
+        return cadre_en_tete
 
-    def create_card(self, parent, color_scheme='secondary'):
-        """Create a card widget with pastel colors"""
-        card = tk.Frame(parent, bg=self.colors[color_scheme], relief='raised', bd=1)
-        return card
+    def creer_carte(self, parent, scheme_couleur='secondaire'):
+        """Crée un widget carte avec des couleurs pastel"""
+        carte = tk.Frame(parent, bg=self.couleurs[scheme_couleur], relief='raised', bd=1)
+        return carte
 
-    def clear_screen(self):
-        for widget in self.main_frame.winfo_children():
+    def effacer_ecran(self):
+        for widget in self.cadre_principal.winfo_children():
             widget.destroy()
 
-    def show_welcome_screen(self):
-        self.clear_screen()
+    def afficher_ecran_accueil(self):
+        self.effacer_ecran()
 
-        # Header with gradient
-        header = self.create_gradient_header(self.main_frame,
+        # En-tête avec dégradé
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
                                              "🎓 Kabyle Connect",
-                                             "Cultural Bridge Language Learning")
+                                             "Pont Culturel d'Apprentissage Linguistique")
 
-        # Main content frame
-        content_frame = ttk.Frame(self.main_frame)
-        content_frame.pack(fill='both', expand=True, pady=20)
+        # Cadre de contenu principal
+        cadre_contenu = ttk.Frame(self.cadre_principal)
+        cadre_contenu.pack(fill='both', expand=True, pady=20)
 
-        # Left side - Registration card
-        reg_card = self.create_card(content_frame, 'accent1')
-        reg_card.pack(side='left', fill='both', expand=True, padx=(0, 10))
+        # Côté gauche - Carte d'inscription
+        carte_inscription = self.creer_carte(cadre_contenu, 'accent1')
+        carte_inscription.pack(side='left', fill='both', expand=True, padx=(0, 10))
 
-        reg_inner = tk.Frame(reg_card, bg=self.colors['accent1'], padx=20, pady=20)
-        reg_inner.pack(fill='both', expand=True)
+        interieur_inscription = tk.Frame(carte_inscription, bg=self.couleurs['accent1'], padx=20, pady=20)
+        interieur_inscription.pack(fill='both', expand=True)
 
-        tk.Label(reg_inner, text="Start Your Journey",
+        tk.Label(interieur_inscription, text="Commencez Votre Voyage",
                  font=('Arial', 16, 'bold'),
-                 bg=self.colors['accent1'],
-                 fg=self.colors['text']).pack(pady=(0, 20))
+                 bg=self.couleurs['accent1'],
+                 fg=self.couleurs['texte']).pack(pady=(0, 20))
 
-        # Registration form
-        form_frame = tk.Frame(reg_inner, bg=self.colors['accent1'])
-        form_frame.pack(fill='x', pady=10)
+        # Formulaire d'inscription
+        cadre_formulaire = tk.Frame(interieur_inscription, bg=self.couleurs['accent1'])
+        cadre_formulaire.pack(fill='x', pady=10)
 
-        tk.Label(form_frame, text="Your Name:",
+        tk.Label(cadre_formulaire, text="Votre Nom :",
                  font=('Arial', 11, 'bold'),
-                 bg=self.colors['accent1'],
-                 fg=self.colors['text']).grid(row=0, column=0, sticky='w', pady=10)
+                 bg=self.couleurs['accent1'],
+                 fg=self.couleurs['texte']).grid(row=0, column=0, sticky='w', pady=10)
 
-        self.name_entry = tk.Entry(form_frame, font=('Arial', 11), width=25,
+        self.entree_nom = tk.Entry(cadre_formulaire, font=('Arial', 11), width=25,
                                    bg='white', relief='solid', bd=1)
-        self.name_entry.grid(row=0, column=1, padx=10, pady=10, sticky='ew')
+        self.entree_nom.grid(row=0, column=1, padx=10, pady=10, sticky='ew')
 
-        tk.Label(form_frame, text="Native Language:",
+        tk.Label(cadre_formulaire, text="Langue Native :",
                  font=('Arial', 11, 'bold'),
-                 bg=self.colors['accent1'],
-                 fg=self.colors['text']).grid(row=1, column=0, sticky='w', pady=10)
+                 bg=self.couleurs['accent1'],
+                 fg=self.couleurs['texte']).grid(row=1, column=0, sticky='w', pady=10)
 
-        self.lang_combo = ttk.Combobox(form_frame, values=['English', 'French', 'Arabic', 'Other'],
-                                       font=('Arial', 11), width=22)
-        self.lang_combo.grid(row=1, column=1, padx=10, pady=10, sticky='ew')
-        self.lang_combo.set('English')
+        self.combo_langue = ttk.Combobox(cadre_formulaire, values=['Français', 'Anglais', 'Arabe', 'Autre'],
+                                         font=('Arial', 11), width=22)
+        self.combo_langue.grid(row=1, column=1, padx=10, pady=10, sticky='ew')
+        self.combo_langue.set('Français')
 
-        form_frame.columnconfigure(1, weight=1)
+        cadre_formulaire.columnconfigure(1, weight=1)
 
-        # Start button with custom style
-        start_btn = tk.Button(reg_inner, text="🚀 Start Learning",
-                              font=('Arial', 12, 'bold'),
-                              bg='#4a90e2',
-                              fg='white',
-                              relief='raised',
-                              bd=3,
-                              padx=20,
-                              pady=10,
-                              command=self.start_learning)
-        start_btn.pack(pady=20)
+        # Bouton de démarrage avec style personnalisé
+        bouton_demarrer = tk.Button(interieur_inscription, text="🚀 Commencer l'Apprentissage",
+                                    font=('Arial', 12, 'bold'),
+                                    bg='#4a90e2',
+                                    fg='white',
+                                    relief='raised',
+                                    bd=3,
+                                    padx=20,
+                                    pady=10,
+                                    command=self.commencer_apprentissage)
+        bouton_demarrer.pack(pady=20)
 
-        # Right side - Features card
-        features_card = self.create_card(content_frame, 'secondary')
-        features_card.pack(side='right', fill='both', expand=True, padx=(10, 0))
+        # Côté droit - Carte des fonctionnalités
+        carte_fonctionnalites = self.creer_carte(cadre_contenu, 'secondaire')
+        carte_fonctionnalites.pack(side='right', fill='both', expand=True, padx=(10, 0))
 
-        features_inner = tk.Frame(features_card, bg=self.colors['secondary'], padx=20, pady=20)
-        features_inner.pack(fill='both', expand=True)
+        interieur_fonctionnalites = tk.Frame(carte_fonctionnalites, bg=self.couleurs['secondaire'], padx=20, pady=20)
+        interieur_fonctionnalites.pack(fill='both', expand=True)
 
-        tk.Label(features_inner, text="✨ Features",
+        tk.Label(interieur_fonctionnalites, text="✨ Fonctionnalités",
                  font=('Arial', 16, 'bold'),
-                 bg=self.colors['secondary'],
-                 fg=self.colors['text']).pack(pady=(0, 15))
+                 bg=self.couleurs['secondaire'],
+                 fg=self.couleurs['texte']).pack(pady=(0, 15))
 
-        features = [
-            "🎯 Intelligent phrase translation",
-            "🏛️ Situational learning modules",
-            "📝 Interactive quizzes & games",
-            "📊 Progress tracking & analytics",
-            "💡 Cultural context tips",
-            "🌍 Real-world scenarios"
+        fonctionnalites = [
+            "🎯 Traduction intelligente de phrases",
+            "🏛️ Modules d'apprentissage situationnel",
+            "📝 Quiz interactifs et jeux",
+            "📊 Suivi de progression et analytics",
+            "💡 Conseils de contexte culturel",
+            "🌍 Scénarios du monde réel"
         ]
 
-        for feature in features:
-            feature_frame = tk.Frame(features_inner, bg=self.colors['secondary'])
-            feature_frame.pack(fill='x', pady=8)
-            tk.Label(feature_frame, text="•",
+        for fonctionnalite in fonctionnalites:
+            cadre_fonctionnalite = tk.Frame(interieur_fonctionnalites, bg=self.couleurs['secondaire'])
+            cadre_fonctionnalite.pack(fill='x', pady=8)
+            tk.Label(cadre_fonctionnalite, text="•",
                      font=('Arial', 14),
-                     bg=self.colors['secondary'],
+                     bg=self.couleurs['secondaire'],
                      fg='#e74c3c').pack(side='left')
-            tk.Label(feature_frame, text=feature,
+            tk.Label(cadre_fonctionnalite, text=fonctionnalite,
                      font=('Arial', 11),
-                     bg=self.colors['secondary'],
-                     fg=self.colors['text']).pack(side='left', padx=5)
+                     bg=self.couleurs['secondaire'],
+                     fg=self.couleurs['texte']).pack(side='left', padx=5)
 
-    def start_learning(self):
-        name = self.name_entry.get().strip()
-        native_lang = self.lang_combo.get()
+    def commencer_apprentissage(self):
+        nom = self.entree_nom.get().strip()
+        langue_native = self.combo_langue.get()
 
-        if not name:
-            messagebox.showerror("Error", "Please enter your name")
+        if not nom:
+            messagebox.showerror("Erreur", "Veuillez entrer votre nom")
             return
 
-        self.current_student = Student(name, native_lang)
-        self.current_student.progress['total_phrases'] = len(self.cultural_bot.phrases)
-        messagebox.showinfo("Success", f"Welcome {name}! Ready to start learning.")
-        # Navigation vers le menu principal sera ajoutée au commit suivant
+        self.etudiant_actuel = Etudiant(nom, langue_native)
+        self.etudiant_actuel.progression['phrases_totales'] = len(self.bot_culturel.phrases)
+        self.afficher_menu_principal()
+
+    def afficher_menu_principal(self):
+        self.effacer_ecran()
+
+        # En-tête
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             f"Bienvenue, {self.etudiant_actuel.nom} ! 👋",
+                                             "Que souhaitez-vous apprendre aujourd'hui ?")
+
+        # Zone de contenu
+        cadre_contenu = ttk.Frame(self.cadre_principal)
+        cadre_contenu.pack(fill='both', expand=True, pady=20)
+
+        # Côté gauche - Carte de progression
+        cadre_gauche = ttk.Frame(cadre_contenu)
+        cadre_gauche.pack(side='left', fill='both', expand=True, padx=(0, 10))
+
+        carte_progression = self.creer_carte(cadre_gauche, 'accent1')
+        carte_progression.pack(fill='both', expand=True)
+
+        interieur_progression = tk.Frame(carte_progression, bg=self.couleurs['accent1'], padx=20, pady=20)
+        interieur_progression.pack(fill='both', expand=True)
+
+        tk.Label(interieur_progression, text="📊 Votre Progression",
+                 font=('Arial', 16, 'bold'),
+                 bg=self.couleurs['accent1'],
+                 fg=self.couleurs['texte']).pack(pady=(0, 15))
+
+        statistiques = [
+            f"📚 Phrases Apprises : {self.etudiant_actuel.progression['phrases_apprises']}/{self.etudiant_actuel.progression['phrases_totales']}",
+            f"🎯 Score Moyen Quiz : {self.etudiant_actuel.progression['score_moyen']:.1f}%",
+            f"📅 Dernière Activité : {self.etudiant_actuel.progression['derniere_activite'] or 'Jamais'}"
+        ]
+
+        for stat in statistiques:
+            cadre_stat = tk.Frame(interieur_progression, bg=self.couleurs['accent1'])
+            cadre_stat.pack(fill='x', pady=8)
+            tk.Label(cadre_stat, text=stat,
+                     font=('Arial', 11),
+                     bg=self.couleurs['accent1'],
+                     fg=self.couleurs['texte']).pack(side='left')
+
+        # Côté droit - Carte du menu
+        cadre_droit = ttk.Frame(cadre_contenu)
+        cadre_droit.pack(side='right', fill='both', expand=True, padx=(10, 0))
+
+        carte_menu = self.creer_carte(cadre_droit, 'secondaire')
+        carte_menu.pack(fill='both', expand=True)
+
+        interieur_menu = tk.Frame(carte_menu, bg=self.couleurs['secondaire'], padx=20, pady=20)
+        interieur_menu.pack(fill='both', expand=True)
+
+        tk.Label(interieur_menu, text="🎮 Centre d'Apprentissage",
+                 font=('Arial', 16, 'bold'),
+                 bg=self.couleurs['secondaire'],
+                 fg=self.couleurs['texte']).pack(pady=(0, 20))
+
+        # Boutons du menu avec icônes et couleurs
+        boutons_menu = [
+            ("💬 Bot Culturel", "#3498db", self.afficher_bot_culturel),
+            ("🏛️ Apprentissage Situationnel", "#2ecc71", self.afficher_situations),
+            ("📝 Centre de Quiz", "#e74c3c", self.afficher_menu_quiz),
+            ("📈 Analytics de Progression", "#9b59b6", self.afficher_progression),
+            ("🌍 À propos du Kabyle", "#f39c12", self.afficher_a_propos)
+        ]
+
+        for texte, couleur, commande in boutons_menu:
+            bouton = tk.Button(interieur_menu, text=texte,
+                               font=('Arial', 12, 'bold'),
+                               bg=couleur,
+                               fg='white',
+                               relief='raised',
+                               bd=2,
+                               padx=20,
+                               pady=12,
+                               width=20,
+                               command=commande)
+            bouton.pack(pady=8)
+
+    def afficher_bot_culturel(self):
+        self.effacer_ecran()
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "💬 Bot Culturel", "Bientôt disponible...")
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+        bouton_retour.pack(anchor='w', pady=10)
+
+    def afficher_situations(self):
+        self.effacer_ecran()
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "🏛️ Apprentissage Situationnel",
+                                             "Bientôt disponible...")
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+        bouton_retour.pack(anchor='w', pady=10)
+
+    def afficher_menu_quiz(self):
+        self.effacer_ecran()
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "📝 Centre de Quiz", "Bientôt disponible...")
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+        bouton_retour.pack(anchor='w', pady=10)
+
+    def afficher_progression(self):
+        self.effacer_ecran()
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "📈 Analytics de Progression",
+                                             "Bientôt disponible...")
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+        bouton_retour.pack(anchor='w', pady=10)
+
+    def afficher_a_propos(self):
+        self.effacer_ecran()
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "🌍 À propos du Kabyle", "Bientôt disponible...")
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+        bouton_retour.pack(anchor='w', pady=10)
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = KabyleConnectApp(root)
-    root.mainloop()
+    racine = tk.Tk()
+    app = ApplicationKabyleConnect(racine)
+    racine.mainloop()
