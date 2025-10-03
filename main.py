@@ -60,16 +60,33 @@ class BotCulturel:
 
     def charger_phrases(self):
         donnees_phrases = [
+            # Salutations
             {"kabyle": "Azul", "anglais": "Hello", "francais": "Bonjour", "categorie": "salutation",
              "situation": "salutations"},
             {"kabyle": "Sbaḥ lxir", "anglais": "Good morning", "francais": "Bonjour", "categorie": "salutation",
              "situation": "salutations"},
+            {"kabyle": "mselxir", "anglais": "Good evening", "francais": "Bonsoir", "categorie": "salutation",
+             "situation": "salutations"},
             {"kabyle": "Tanemmirt", "anglais": "Thank you", "francais": "Merci", "categorie": "courtoisie",
              "situation": "salutations"},
-            {"kabyle": "Ḥwajeɣ takwa", "anglais": "I want coffee", "francais": "Je veux du café",
+            {"kabyle": "Ur fehimegh ara", "anglais": "I don't understand", "francais": "Je ne comprends pas",
+             "categorie": "communication", "situation": "salutations"},
+
+            # Café
+            {"kabyle": "Ḥwajeɣ qahwa", "anglais": "I want coffee", "francais": "Je veux du café",
              "categorie": "commande", "situation": "cafe"},
-            {"kabyle": "Wagi amek ayɣa?", "anglais": "How much is this?", "francais": "C'est combien?",
+            {"kabyle": "acehal wagi?", "anglais": "How much is this?", "francais": "C'est combien?",
              "categorie": "prix", "situation": "cafe"},
+            {"kabyle": "Ḥwajeɣ aman", "anglais": "I want water", "francais": "Je veux de l'eau",
+             "categorie": "commande", "situation": "cafe"},
+
+            # Campus
+            {"kabyle": "Anida tella tenedlist?", "anglais": "Where is the library?",
+             "francais": "Où est la bibliothèque?", "categorie": "directions", "situation": "campus"},
+
+            # Marché
+            {"kabyle": "S wacehal wagi?", "anglais": "How much does it cost?", "francais": "Combien ça coûte?",
+             "categorie": "prix", "situation": "marche"},
         ]
 
         return [Phrase(**donnees) for donnees in donnees_phrases]
@@ -337,9 +354,133 @@ class ApplicationKabyleConnect:
 
     def afficher_bot_culturel(self):
         self.effacer_ecran()
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "💬 Bot Culturel", "Bientôt disponible...")
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+
+        # En-tête
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             "💬 Bot Culturel",
+                                             "Demandez-moi n'importe quoi et je le traduirai en Kabyle !")
+
+        # Bouton retour
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu",
+                                  font=('Arial', 10, 'bold'),
+                                  bg='#95a5a6',
+                                  fg='white',
+                                  command=self.afficher_menu_principal)
         bouton_retour.pack(anchor='w', pady=10)
+
+        # Zone de chat principale
+        conteneur_chat = ttk.Frame(self.cadre_principal)
+        conteneur_chat.pack(fill='both', expand=True, pady=20)
+
+        # Carte de zone de saisie
+        carte_saisie = self.creer_carte(conteneur_chat, 'accent1')
+        carte_saisie.pack(fill='x', pady=(0, 15))
+
+        interieur_saisie = tk.Frame(carte_saisie, bg=self.couleurs['accent1'], padx=20, pady=15)
+        interieur_saisie.pack(fill='x')
+
+        tk.Label(interieur_saisie, text="Demandez en Anglais :",
+                 font=('Arial', 11, 'bold'),
+                 bg=self.couleurs['accent1'],
+                 fg=self.couleurs['texte']).pack(side='left', padx=(0, 10))
+
+        self.entree_chat = tk.Entry(interieur_saisie, font=('Arial', 11), width=40,
+                                    bg='white', relief='solid', bd=1)
+        self.entree_chat.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        self.entree_chat.bind('<Return>', lambda e: self.gerer_saisie_chat())
+
+        tk.Button(interieur_saisie, text="Traduire 🔍",
+                  font=('Arial', 10, 'bold'),
+                  bg='#3498db',
+                  fg='white',
+                  command=self.gerer_saisie_chat).pack(side='left')
+
+        # Phrases d'exemple
+        carte_exemples = self.creer_carte(conteneur_chat, 'secondaire')
+        carte_exemples.pack(fill='x', pady=(0, 15))
+
+        interieur_exemples = tk.Frame(carte_exemples, bg=self.couleurs['secondaire'], padx=20, pady=15)
+        interieur_exemples.pack(fill='x')
+
+        tk.Label(interieur_exemples, text="Essayez ces phrases :",
+                 font=('Arial', 11, 'bold'),
+                 bg=self.couleurs['secondaire'],
+                 fg=self.couleurs['texte']).pack(side='left', padx=(0, 15))
+
+        exemples = ["Hello", "Thank you", "How much is this?", "Where is the library?"]
+        for exemple in exemples:
+            tk.Button(interieur_exemples, text=exemple,
+                      font=('Arial', 9),
+                      bg='#e74c3c',
+                      fg='white',
+                      command=lambda e=exemple: self.inserer_exemple(e)).pack(side='left', padx=5)
+
+        # Carte de zone de réponse
+        carte_reponse = self.creer_carte(conteneur_chat, 'accent2')
+        carte_reponse.pack(fill='both', expand=True)
+
+        interieur_reponse = tk.Frame(carte_reponse, bg=self.couleurs['accent2'], padx=20, pady=20)
+        interieur_reponse.pack(fill='both', expand=True)
+
+        tk.Label(interieur_reponse, text="Résultat de la Traduction 📝",
+                 font=('Arial', 14, 'bold'),
+                 bg=self.couleurs['accent2'],
+                 fg=self.couleurs['texte']).pack(anchor='w', pady=(0, 10))
+
+        self.texte_reponse = tk.Text(interieur_reponse, height=15, width=80,
+                                     font=('Arial', 11), wrap='word',
+                                     bg='white', relief='solid', bd=1)
+        self.texte_reponse.pack(fill='both', expand=True)
+        self.texte_reponse.config(state='disabled')
+
+    def inserer_exemple(self, exemple):
+        self.entree_chat.delete(0, tk.END)
+        self.entree_chat.insert(0, exemple)
+        self.gerer_saisie_chat()
+
+    def gerer_saisie_chat(self):
+        saisie_utilisateur = self.entree_chat.get().strip()
+        if not saisie_utilisateur:
+            return
+
+        phrase = self.bot_culturel.traduire(saisie_utilisateur)
+
+        self.texte_reponse.config(state='normal')
+        self.texte_reponse.delete(1.0, tk.END)
+
+        if phrase:
+            reponse = f"""🔹 Kabyle : {phrase.kabyle}
+🔹 Anglais : {phrase.anglais}
+🔹 Français : {phrase.francais}
+🔹 Catégorie : {phrase.categorie.title()}
+🔹 Situation : {phrase.situation.title()}
+
+💡 Conseil Culturel : Cette phrase est couramment utilisée dans les situations {phrase.situation}.
+   Pratiquez-la pour améliorer votre vocabulaire {phrase.categorie} !
+
+📊 Statistiques de Pratique : 
+   • Taux de Réussite : {phrase.get_taux_reussite():.1f}%
+   • Fois Pratiquée : {phrase.fois_pratiquee}"""
+
+            self.etudiant_actuel.ajouter_phrase_apprise(phrase)
+            phrase.fois_pratiquee += 1
+            phrase.fois_correct += 1
+
+        else:
+            reponse = f"❌ Je n'ai pas trouvé de traduction pour '{saisie_utilisateur}'.\n\nEssayez ces phrases similaires :\n"
+
+            # Trouver des phrases similaires
+            similaires = [p for p in self.bot_culturel.phrases if
+                          any(mot in saisie_utilisateur.lower() for mot in p.anglais.lower().split())]
+            if similaires:
+                for p in similaires[:3]:
+                    reponse += f"• {p.anglais} -> {p.kabyle}\n"
+            else:
+                reponse += "• Hello -> Azul\n• Thank you -> Tanemmirt\n• How much? -> S wemek ayɣa?"
+
+        self.texte_reponse.insert(1.0, reponse)
+        self.texte_reponse.config(state='disabled')
+        self.entree_chat.delete(0, tk.END)
 
     def afficher_situations(self):
         self.effacer_ecran()
