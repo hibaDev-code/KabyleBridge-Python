@@ -60,43 +60,16 @@ class BotCulturel:
 
     def charger_phrases(self):
         donnees_phrases = [
-            # Salutations
             {"kabyle": "Azul", "anglais": "Hello", "francais": "Bonjour", "categorie": "salutation",
              "situation": "salutations"},
             {"kabyle": "Sbaḥ lxir", "anglais": "Good morning", "francais": "Bonjour", "categorie": "salutation",
              "situation": "salutations"},
-            {"kabyle": "mselxir", "anglais": "Good evening", "francais": "Bonsoir", "categorie": "salutation",
-             "situation": "salutations"},
             {"kabyle": "Tanemmirt", "anglais": "Thank you", "francais": "Merci", "categorie": "courtoisie",
              "situation": "salutations"},
-            {"kabyle": "Ur fehimegh ara", "anglais": "I don't understand", "francais": "Je ne comprends pas",
-             "categorie": "communication", "situation": "salutations"},
-
-            # Café
-            {"kabyle": "Ḥwajeɣ lqahwa", "anglais": "I want coffee", "francais": "Je veux du café",
+            {"kabyle": "Ḥwajeɣ takwa", "anglais": "I want coffee", "francais": "Je veux du café",
              "categorie": "commande", "situation": "cafe"},
-            {"kabyle": "Wagi acehal?", "anglais": "How much is this?", "francais": "C'est combien?",
+            {"kabyle": "Wagi amek ayɣa?", "anglais": "How much is this?", "francais": "C'est combien?",
              "categorie": "prix", "situation": "cafe"},
-            {"kabyle": "Ḥwajeɣ aman", "anglais": "I want water", "francais": "Je veux de l'eau",
-             "categorie": "commande", "situation": "cafe"},
-            {"kabyle": "yella sker ?", "anglais": "Is there sugar?", "francais": "Y a-t-il du sucre?",
-             "categorie": "demande", "situation": "cafe"},
-
-            # Campus
-            {"kabyle": "Anida tella texxamt n yidlisen?", "anglais": "Where is the library?",
-             "francais": "Où est la bibliothèque?", "categorie": "directions", "situation": "campus"},
-            {"kabyle": "Anida tella tesmilin ?", "anglais": "Where are the classrooms?",
-             "francais": "Où sont les salles de classe?", "categorie": "directions", "situation": "campus"},
-            {"kabyle": "Ḥwajeɣ ad ruhegh ɣer tseddawit", "anglais": "I need to go to the university",
-             "francais": "Je dois aller à l'université", "categorie": "directions", "situation": "campus"},
-
-            # Marché
-            {"kabyle": "acehal wagi ?", "anglais": "How much does it cost?", "francais": "Combien ça coûte?",
-             "categorie": "prix", "situation": "marche"},
-            {"kabyle": "Ḥwajeɣ aṭas n ccina", "anglais": "I want many oranges",
-             "francais": "Je veux beaucoup d'oranges", "categorie": "shopping", "situation": "marche"},
-            {"kabyle": "tella tafaṭurt ?", "anglais": "Is there a bill?", "francais": "Y a-t-il une facture?",
-             "categorie": "paiement", "situation": "marche"}
         ]
 
         return [Phrase(**donnees) for donnees in donnees_phrases]
@@ -110,6 +83,37 @@ class BotCulturel:
     def get_phrases_situation(self, situation):
         return [phrase for phrase in self.phrases if phrase.situation == situation]
 
+    def generer_questions_quiz(self, situation=None, nombre_questions=5):
+        if situation:
+            phrases_disponibles = self.get_phrases_situation(situation)
+        else:
+            phrases_disponibles = self.phrases
+
+        if len(phrases_disponibles) < nombre_questions:
+            nombre_questions = len(phrases_disponibles)
+
+        questions = []
+        phrases_selectionnees = random.sample(phrases_disponibles, nombre_questions)
+
+        for phrase in phrases_selectionnees:
+            mauvaises_reponses = [
+                p.anglais for p in self.phrases
+                if p.categorie == phrase.categorie and p.anglais != phrase.anglais
+            ]
+            mauvaises_reponses = random.sample(mauvaises_reponses, min(3, len(mauvaises_reponses)))
+
+            options = mauvaises_reponses + [phrase.anglais]
+            random.shuffle(options)
+
+            questions.append({
+                'phrase': phrase,
+                'question': f"Que signifie '{phrase.kabyle}' ?",
+                'options': options,
+                'reponse_correcte': phrase.anglais
+            })
+
+        return questions
+
 
 class ApplicationKabyleConnect:
     def __init__(self, racine):
@@ -118,7 +122,6 @@ class ApplicationKabyleConnect:
         self.racine.geometry("1000x750")
         self.racine.configure(bg='#fff9e6')
 
-        # Configuration du schéma de couleurs
         self.couleurs = {
             'primaire': '#fff9e6',
             'secondaire': '#e6f7ff',
@@ -130,28 +133,26 @@ class ApplicationKabyleConnect:
 
         self.bot_culturel = BotCulturel()
         self.etudiant_actuel = None
+        self.quiz_actuel = None
+        self.index_question_actuelle = 0
+        self.score_quiz = 0
 
         self.configurer_interface()
 
     def configurer_interface(self):
-        # Configuration du style
         style = ttk.Style()
         style.theme_use('clam')
 
-        # Configuration des styles
         style.configure('TFrame', background=self.couleurs['primaire'])
         style.configure('TLabel', background=self.couleurs['primaire'], foreground=self.couleurs['texte'],
                         font=('Arial', 10))
-        style.configure('TButton', font=('Arial', 10, 'bold'), background=self.couleurs['bouton'], foreground='white')
 
-        # Conteneur principal
         self.cadre_principal = ttk.Frame(self.racine, style='TFrame')
         self.cadre_principal.pack(fill=tk.BOTH, expand=True, padx=25, pady=25)
 
         self.afficher_ecran_accueil()
 
     def creer_en_tete_degradé(self, parent, titre, sous_titre=None):
-        """Crée un en-tête avec effet de dégradé"""
         cadre_en_tete = tk.Frame(parent, bg=self.couleurs['secondaire'], height=120, relief='raised', bd=1)
         cadre_en_tete.pack(fill='x', pady=(0, 20))
         cadre_en_tete.pack_propagate(False)
@@ -173,7 +174,6 @@ class ApplicationKabyleConnect:
         return cadre_en_tete
 
     def creer_carte(self, parent, scheme_couleur='secondaire'):
-        """Crée un widget carte avec des couleurs pastel"""
         carte = tk.Frame(parent, bg=self.couleurs[scheme_couleur], relief='raised', bd=1)
         return carte
 
@@ -184,16 +184,14 @@ class ApplicationKabyleConnect:
     def afficher_ecran_accueil(self):
         self.effacer_ecran()
 
-        # En-tête avec dégradé
         en_tete = self.creer_en_tete_degradé(self.cadre_principal,
                                              "🎓 Kabyle Connect",
                                              "Pont Culturel d'Apprentissage Linguistique")
 
-        # Cadre de contenu principal
         cadre_contenu = ttk.Frame(self.cadre_principal)
         cadre_contenu.pack(fill='both', expand=True, pady=20)
 
-        # Côté gauche - Carte d'inscription
+        # Carte d'inscription
         carte_inscription = self.creer_carte(cadre_contenu, 'accent1')
         carte_inscription.pack(side='left', fill='both', expand=True, padx=(0, 10))
 
@@ -205,7 +203,7 @@ class ApplicationKabyleConnect:
                  bg=self.couleurs['accent1'],
                  fg=self.couleurs['texte']).pack(pady=(0, 20))
 
-        # Formulaire d'inscription
+        # Formulaire
         cadre_formulaire = tk.Frame(interieur_inscription, bg=self.couleurs['accent1'])
         cadre_formulaire.pack(fill='x', pady=10)
 
@@ -230,19 +228,14 @@ class ApplicationKabyleConnect:
 
         cadre_formulaire.columnconfigure(1, weight=1)
 
-        # Bouton de démarrage avec style personnalisé
         bouton_demarrer = tk.Button(interieur_inscription, text="🚀 Commencer l'Apprentissage",
                                     font=('Arial', 12, 'bold'),
                                     bg='#4a90e2',
                                     fg='white',
-                                    relief='raised',
-                                    bd=3,
-                                    padx=20,
-                                    pady=10,
                                     command=self.commencer_apprentissage)
         bouton_demarrer.pack(pady=20)
 
-        # Côté droit - Carte des fonctionnalités
+        # Carte fonctionnalités
         carte_fonctionnalites = self.creer_carte(cadre_contenu, 'secondaire')
         carte_fonctionnalites.pack(side='right', fill='both', expand=True, padx=(10, 0))
 
@@ -290,16 +283,14 @@ class ApplicationKabyleConnect:
     def afficher_menu_principal(self):
         self.effacer_ecran()
 
-        # En-tête
         en_tete = self.creer_en_tete_degradé(self.cadre_principal,
                                              f"Bienvenue, {self.etudiant_actuel.nom} ! 👋",
                                              "Que souhaitez-vous apprendre aujourd'hui ?")
 
-        # Zone de contenu
         cadre_contenu = ttk.Frame(self.cadre_principal)
         cadre_contenu.pack(fill='both', expand=True, pady=20)
 
-        # Côté gauche - Carte de progression
+        # Carte progression
         cadre_gauche = ttk.Frame(cadre_contenu)
         cadre_gauche.pack(side='left', fill='both', expand=True, padx=(0, 10))
 
@@ -314,13 +305,13 @@ class ApplicationKabyleConnect:
                  bg=self.couleurs['accent1'],
                  fg=self.couleurs['texte']).pack(pady=(0, 15))
 
-        statistiques = [
+        stats = [
             f"📚 Phrases Apprises : {self.etudiant_actuel.progression['phrases_apprises']}/{self.etudiant_actuel.progression['phrases_totales']}",
             f"🎯 Score Moyen Quiz : {self.etudiant_actuel.progression['score_moyen']:.1f}%",
             f"📅 Dernière Activité : {self.etudiant_actuel.progression['derniere_activite'] or 'Jamais'}"
         ]
 
-        for stat in statistiques:
+        for stat in stats:
             cadre_stat = tk.Frame(interieur_progression, bg=self.couleurs['accent1'])
             cadre_stat.pack(fill='x', pady=8)
             tk.Label(cadre_stat, text=stat,
@@ -328,7 +319,7 @@ class ApplicationKabyleConnect:
                      bg=self.couleurs['accent1'],
                      fg=self.couleurs['texte']).pack(side='left')
 
-        # Côté droit - Carte du menu
+        # Carte menu
         cadre_droit = ttk.Frame(cadre_contenu)
         cadre_droit.pack(side='right', fill='both', expand=True, padx=(10, 0))
 
@@ -343,13 +334,12 @@ class ApplicationKabyleConnect:
                  bg=self.couleurs['secondaire'],
                  fg=self.couleurs['texte']).pack(pady=(0, 20))
 
-        # Boutons du menu avec icônes et couleurs
         boutons_menu = [
             ("💬 Bot Culturel", "#3498db", self.afficher_bot_culturel),
-            ("🏛️ Apprentissage Situationnel", "#2ecc71", self.afficher_situations),
-            ("📝 Centre de Quiz", "#e74c3c", self.afficher_menu_quiz),
-            ("📈 Analytics de Progression", "#9b59b6", self.afficher_progression),
-            ("🌍 À propos du Kabyle", "#f39c12", self.afficher_a_propos)
+            ("🏛️ Situations", "#2ecc71", self.afficher_situations),
+            ("📝 Quiz", "#e74c3c", self.afficher_menu_quiz),
+            ("📈 Progression", "#9b59b6", self.afficher_progression),
+            ("🌍 À propos", "#f39c12", self.afficher_a_propos)
         ]
 
         for texte, couleur, commande in boutons_menu:
@@ -357,99 +347,39 @@ class ApplicationKabyleConnect:
                                font=('Arial', 12, 'bold'),
                                bg=couleur,
                                fg='white',
-                               relief='raised',
-                               bd=2,
-                               padx=20,
-                               pady=12,
-                               width=20,
                                command=commande)
             bouton.pack(pady=8)
 
     def afficher_bot_culturel(self):
         self.effacer_ecran()
 
-        # En-tête
         en_tete = self.creer_en_tete_degradé(self.cadre_principal,
                                              "💬 Bot Culturel",
                                              "Demandez-moi n'importe quoi et je le traduirai en Kabyle !")
 
-        # Bouton retour
         bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu",
-                                  font=('Arial', 10, 'bold'),
-                                  bg='#95a5a6',
-                                  fg='white',
                                   command=self.afficher_menu_principal)
         bouton_retour.pack(anchor='w', pady=10)
 
-        # Zone de chat principale
-        conteneur_chat = ttk.Frame(self.cadre_principal)
-        conteneur_chat.pack(fill='both', expand=True, pady=20)
+        # Zone saisie
+        cadre_saisie = tk.Frame(self.cadre_principal, bg=self.couleurs['primaire'])
+        cadre_saisie.pack(fill='x', pady=10, padx=50)
 
-        # Carte de zone de saisie
-        carte_saisie = self.creer_carte(conteneur_chat, 'accent1')
-        carte_saisie.pack(fill='x', pady=(0, 15))
+        tk.Label(cadre_saisie, text="Demandez en Anglais :",
+                 font=('Arial', 11, 'bold')).pack(side='left')
 
-        interieur_saisie = tk.Frame(carte_saisie, bg=self.couleurs['accent1'], padx=20, pady=15)
-        interieur_saisie.pack(fill='x')
-
-        tk.Label(interieur_saisie, text="Demandez en Anglais :",
-                 font=('Arial', 11, 'bold'),
-                 bg=self.couleurs['accent1'],
-                 fg=self.couleurs['texte']).pack(side='left', padx=(0, 10))
-
-        self.entree_chat = tk.Entry(interieur_saisie, font=('Arial', 11), width=40,
-                                    bg='white', relief='solid', bd=1)
-        self.entree_chat.pack(side='left', fill='x', expand=True, padx=(0, 10))
+        self.entree_chat = tk.Entry(cadre_saisie, font=('Arial', 11), width=40)
+        self.entree_chat.pack(side='left', fill='x', expand=True, padx=10)
         self.entree_chat.bind('<Return>', lambda e: self.gerer_saisie_chat())
 
-        tk.Button(interieur_saisie, text="Traduire 🔍",
-                  font=('Arial', 10, 'bold'),
-                  bg='#3498db',
-                  fg='white',
+        tk.Button(cadre_saisie, text="Traduire",
                   command=self.gerer_saisie_chat).pack(side='left')
 
-        # Phrases d'exemple
-        carte_exemples = self.creer_carte(conteneur_chat, 'secondaire')
-        carte_exemples.pack(fill='x', pady=(0, 15))
-
-        interieur_exemples = tk.Frame(carte_exemples, bg=self.couleurs['secondaire'], padx=20, pady=15)
-        interieur_exemples.pack(fill='x')
-
-        tk.Label(interieur_exemples, text="Essayez ces phrases :",
-                 font=('Arial', 11, 'bold'),
-                 bg=self.couleurs['secondaire'],
-                 fg=self.couleurs['texte']).pack(side='left', padx=(0, 15))
-
-        exemples = ["Hello", "Thank you", "How much is this?", "Where is the library?"]
-        for exemple in exemples:
-            tk.Button(interieur_exemples, text=exemple,
-                      font=('Arial', 9),
-                      bg='#e74c3c',
-                      fg='white',
-                      command=lambda e=exemple: self.inserer_exemple(e)).pack(side='left', padx=5)
-
-        # Carte de zone de réponse
-        carte_reponse = self.creer_carte(conteneur_chat, 'accent2')
-        carte_reponse.pack(fill='both', expand=True)
-
-        interieur_reponse = tk.Frame(carte_reponse, bg=self.couleurs['accent2'], padx=20, pady=20)
-        interieur_reponse.pack(fill='both', expand=True)
-
-        tk.Label(interieur_reponse, text="Résultat de la Traduction 📝",
-                 font=('Arial', 14, 'bold'),
-                 bg=self.couleurs['accent2'],
-                 fg=self.couleurs['texte']).pack(anchor='w', pady=(0, 10))
-
-        self.texte_reponse = tk.Text(interieur_reponse, height=15, width=80,
-                                     font=('Arial', 11), wrap='word',
-                                     bg='white', relief='solid', bd=1)
-        self.texte_reponse.pack(fill='both', expand=True)
+        # Zone réponse
+        self.texte_reponse = tk.Text(self.cadre_principal, height=15, width=80,
+                                     font=('Arial', 11), wrap='word')
+        self.texte_reponse.pack(fill='both', expand=True, padx=50, pady=10)
         self.texte_reponse.config(state='disabled')
-
-    def inserer_exemple(self, exemple):
-        self.entree_chat.delete(0, tk.END)
-        self.entree_chat.insert(0, exemple)
-        self.gerer_saisie_chat()
 
     def gerer_saisie_chat(self):
         saisie_utilisateur = self.entree_chat.get().strip()
@@ -462,34 +392,13 @@ class ApplicationKabyleConnect:
         self.texte_reponse.delete(1.0, tk.END)
 
         if phrase:
-            reponse = f"""🔹 Kabyle : {phrase.kabyle}
-🔹 Anglais : {phrase.anglais}
-🔹 Français : {phrase.francais}
-🔹 Catégorie : {phrase.categorie.title()}
-🔹 Situation : {phrase.situation.title()}
-
-💡 Conseil Culturel : Cette phrase est couramment utilisée dans les situations {phrase.situation}.
-   Pratiquez-la pour améliorer votre vocabulaire {phrase.categorie} !
-
-📊 Statistiques de Pratique : 
-   • Taux de Réussite : {phrase.get_taux_reussite():.1f}%
-   • Fois Pratiquée : {phrase.fois_pratiquee}"""
+            reponse = f"""Kabyle : {phrase.kabyle}
+Anglais : {phrase.anglais}
+Français : {phrase.francais}"""
 
             self.etudiant_actuel.ajouter_phrase_apprise(phrase)
-            phrase.fois_pratiquee += 1
-            phrase.fois_correct += 1
-
         else:
-            reponse = f"❌ Je n'ai pas trouvé de traduction pour '{saisie_utilisateur}'.\n\nEssayez ces phrases similaires :\n"
-
-            # Trouver des phrases similaires
-            similaires = [p for p in self.bot_culturel.phrases if
-                          any(mot in saisie_utilisateur.lower() for mot in p.anglais.lower().split())]
-            if similaires:
-                for p in similaires[:3]:
-                    reponse += f"• {p.anglais} -> {p.kabyle}\n"
-            else:
-                reponse += "• Hello -> Azul\n• Thank you -> Tanemmirt\n• How much? -> S wemek ayɣa?"
+            reponse = f"Je n'ai pas trouvé de traduction pour '{saisie_utilisateur}'"
 
         self.texte_reponse.insert(1.0, reponse)
         self.texte_reponse.config(state='disabled')
@@ -497,140 +406,154 @@ class ApplicationKabyleConnect:
 
     def afficher_situations(self):
         self.effacer_ecran()
-
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
-                                             "🏛️ Apprentissage Situationnel",
-                                             "Apprenez des phrases pour des scénarios du monde réel")
-
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu",
-                                  command=self.afficher_menu_principal)
-        bouton_retour.pack(anchor='w', pady=10)
-
-        cadre_situations = ttk.Frame(self.cadre_principal)
-        cadre_situations.pack(fill='both', expand=True, pady=20)
-
-        for situation, description in self.bot_culturel.situations.items():
-            carte_situation = self.creer_carte(cadre_situations, 'accent1')
-            carte_situation.pack(fill='x', pady=10, padx=20)
-
-            interieur_situation = tk.Frame(carte_situation, bg=self.couleurs['accent1'], padx=20, pady=15)
-            interieur_situation.pack(fill='x')
-
-            # En-tête de situation
-            cadre_en_tete = tk.Frame(interieur_situation, bg=self.couleurs['accent1'])
-            cadre_en_tete.pack(fill='x', pady=(0, 10))
-
-            tk.Label(cadre_en_tete, text=description,
-                     font=('Arial', 14, 'bold'),
-                     bg=self.couleurs['accent1'],
-                     fg=self.couleurs['texte']).pack(side='left')
-
-            phrases = self.bot_culturel.get_phrases_situation(situation)
-            nombre_phrases = len(phrases)
-            phrases_apprises = len([p for p in phrases if p in self.etudiant_actuel.phrases_apprises])
-
-            tk.Label(cadre_en_tete, text=f"({phrases_apprises}/{nombre_phrases} apprises)",
-                     font=('Arial', 11),
-                     bg=self.couleurs['accent1'],
-                     fg='#7f8c8d').pack(side='right')
-
-            # Barre de progression
-            cadre_progression = tk.Frame(interieur_situation, bg=self.couleurs['accent1'])
-            cadre_progression.pack(fill='x', pady=5)
-
-            progression = ttk.Progressbar(cadre_progression, length=300, maximum=nombre_phrases)
-            progression.pack(side='left', fill='x', expand=True)
-            progression['value'] = phrases_apprises
-
-            # Bouton de pratique
-            tk.Button(interieur_situation, text="Pratiquer Cette Situation 🎯",
-                      font=('Arial', 10, 'bold'),
-                      bg='#2ecc71',
-                      fg='white',
-                      command=lambda s=situation: self.pratiquer_situation(s)).pack(pady=10)
-
-    def pratiquer_situation(self, situation):
-        phrases = self.bot_culturel.get_phrases_situation(situation)
-
-        self.effacer_ecran()
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
-                                             f"📚 {self.bot_culturel.situations[situation]}",
-                                             "Apprenez et pratiquez ces phrases essentielles")
-
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour aux Situations",
-                                  command=self.afficher_situations).pack(anchor='w', pady=10)
-
-        # Créer un notebook pour les phrases
-        notebook = ttk.Notebook(self.cadre_principal)
-        notebook.pack(fill='both', expand=True, padx=20, pady=10)
-
-        for phrase in phrases:
-            cadre = tk.Frame(notebook, bg=self.couleurs['primaire'])
-            notebook.add(cadre, text=phrase.anglais)
-
-            cadre_contenu = tk.Frame(cadre, bg=self.couleurs['primaire'], padx=20, pady=20)
-            cadre_contenu.pack(fill='both', expand=True)
-
-            # Affichage de la phrase
-            tk.Label(cadre_contenu, text=phrase.kabyle,
-                     font=('Arial', 20, 'bold'),
-                     bg=self.couleurs['primaire'],
-                     fg='#2c3e50').pack(pady=10)
-
-            cadre_info = tk.Frame(cadre_contenu, bg=self.couleurs['primaire'])
-            cadre_info.pack(fill='x', pady=5)
-
-            tk.Label(cadre_info, text=f"Anglais : {phrase.anglais}",
-                     font=('Arial', 12),
-                     bg=self.couleurs['primaire'],
-                     fg=self.couleurs['texte']).pack(anchor='w')
-
-            tk.Label(cadre_info, text=f"Français : {phrase.francais}",
-                     font=('Arial', 12),
-                     bg=self.couleurs['primaire'],
-                     fg=self.couleurs['texte']).pack(anchor='w')
-
-            tk.Label(cadre_info, text=f"Catégorie : {phrase.categorie.title()}",
-                     font=('Arial', 11),
-                     bg=self.couleurs['primaire'],
-                     fg='#7f8c8d').pack(anchor='w', pady=(10, 0))
-
-            # Bouton marquer comme appris
-            if phrase not in self.etudiant_actuel.phrases_apprises:
-                tk.Button(cadre_contenu, text="✅ Marquer comme Apprise",
-                          font=('Arial', 11, 'bold'),
-                          bg='#27ae60',
-                          fg='white',
-                          command=lambda p=phrase: self.marquer_phrase_apprise(p)).pack(pady=20)
-            else:
-                tk.Label(cadre_contenu, text="🎉 Déjà Apprise !",
-                         font=('Arial', 12, 'bold'),
-                         bg=self.couleurs['primaire'],
-                         fg='#27ae60').pack(pady=20)
-
-    def marquer_phrase_apprise(self, phrase):
-        self.etudiant_actuel.ajouter_phrase_apprise(phrase)
-        messagebox.showinfo("Succès", f"'{phrase.anglais}' marquée comme apprise !")
-        self.pratiquer_situation(phrase.situation)
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "🏛️ Situations", "Bientôt disponible...")
+        tk.Button(self.cadre_principal, text="← Retour", command=self.afficher_menu_principal).pack(anchor='w', pady=10)
 
     def afficher_menu_quiz(self):
         self.effacer_ecran()
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "📝 Centre de Quiz", "Bientôt disponible...")
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
-        bouton_retour.pack(anchor='w', pady=10)
+
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             "📝 Quiz",
+                                             "Testez vos connaissances !")
+
+        tk.Button(self.cadre_principal, text="← Retour", command=self.afficher_menu_principal).pack(anchor='w', pady=10)
+
+        cadre_quiz = ttk.Frame(self.cadre_principal)
+        cadre_quiz.pack(fill='both', expand=True, pady=20)
+
+        tk.Label(cadre_quiz, text="Choisissez un quiz :",
+                 font=('Arial', 16, 'bold')).pack(pady=20)
+
+        options_quiz = [
+            ("🎯 Quiz Général", "#3498db", None),
+            ("☕ Café", "#e67e22", "cafe"),
+            ("👋 Salutations", "#9b59b6", "salutations")
+        ]
+
+        for texte, couleur, situation in options_quiz:
+            bouton = tk.Button(cadre_quiz, text=texte,
+                               font=('Arial', 12),
+                               bg=couleur,
+                               fg='white',
+                               command=lambda s=situation: self.commencer_quiz(s))
+            bouton.pack(pady=10)
+
+    def commencer_quiz(self, situation):
+        self.quiz_actuel = self.bot_culturel.generer_questions_quiz(situation, 3)
+        self.index_question_actuelle = 0
+        self.score_quiz = 0
+
+        if not self.quiz_actuel:
+            messagebox.showinfo("Info", "Pas assez de phrases disponibles.")
+            return
+
+        self.afficher_question()
+
+    def afficher_question(self):
+        self.effacer_ecran()
+
+        if self.index_question_actuelle >= len(self.quiz_actuel):
+            self.afficher_resultats_quiz()
+            return
+
+        question_data = self.quiz_actuel[self.index_question_actuelle]
+        phrase = question_data['phrase']
+
+        # En-tête
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             f"Question {self.index_question_actuelle + 1}/{len(self.quiz_actuel)}",
+                                             f"Score : {self.score_quiz}")
+
+        # Question
+        cadre_question = tk.Frame(self.cadre_principal, bg=self.couleurs['primaire'])
+        cadre_question.pack(fill='x', pady=20, padx=50)
+
+        tk.Label(cadre_question, text="Traduisez cette phrase :",
+                 font=('Arial', 14, 'bold')).pack(anchor='w')
+
+        tk.Label(cadre_question, text=phrase.kabyle,
+                 font=('Arial', 24, 'bold'),
+                 fg='#2c3e50').pack(pady=10)
+
+        # Options
+        cadre_options = ttk.Frame(self.cadre_principal)
+        cadre_options.pack(fill='both', expand=True, pady=20, padx=50)
+
+        for option in question_data['options']:
+            bouton = tk.Button(cadre_options, text=option,
+                               font=('Arial', 11),
+                               command=lambda opt=option: self.verifier_reponse(opt, question_data['reponse_correcte']))
+            bouton.pack(pady=8)
+
+    def verifier_reponse(self, selectionnee, correcte):
+        phrase = self.quiz_actuel[self.index_question_actuelle]['phrase']
+        phrase.fois_pratiquee += 1
+
+        if selectionnee == correcte:
+            self.score_quiz += 1
+            phrase.fois_correct += 1
+            messagebox.showinfo("Correct !", "Bien joué !")
+        else:
+            messagebox.showerror("Incorrect", f"La bonne réponse était : {correcte}")
+
+        self.index_question_actuelle += 1
+        self.afficher_question()
+
+    def afficher_resultats_quiz(self):
+        self.effacer_ecran()
+
+        pourcentage = (self.score_quiz / len(self.quiz_actuel)) * 100
+
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             "🎉 Quiz Terminé !",
+                                             "Excellent travail !")
+
+        # Résultats
+        cadre_resultats = tk.Frame(self.cadre_principal, bg=self.couleurs['primaire'])
+        cadre_resultats.pack(fill='x', pady=20, padx=50)
+
+        tk.Label(cadre_resultats, text="📊 Vos Résultats",
+                 font=('Arial', 20, 'bold')).pack(pady=10)
+
+        tk.Label(cadre_resultats, text=f"Score : {self.score_quiz}/{len(self.quiz_actuel)}",
+                 font=('Arial', 18, 'bold'),
+                 fg='#27ae60').pack(pady=5)
+
+        tk.Label(cadre_resultats, text=f"Pourcentage : {pourcentage:.1f}%",
+                 font=('Arial', 16)).pack(pady=5)
+
+        # Message
+        if pourcentage >= 70:
+            message = "🌟 Excellent !"
+        else:
+            message = "💪 Continuez à pratiquer !"
+
+        tk.Label(cadre_resultats, text=message,
+                 font=('Arial', 14)).pack(pady=10)
+
+        # Mettre à jour les scores
+        self.etudiant_actuel.ajouter_score_quiz(pourcentage)
+
+        # Boutons
+        cadre_boutons = tk.Frame(cadre_resultats)
+        cadre_boutons.pack(pady=20)
+
+        tk.Button(cadre_boutons, text="📝 Refaire le Quiz",
+                  command=lambda: self.commencer_quiz(self.quiz_actuel[0]['phrase'].situation)).pack(side='left',
+                                                                                                     padx=10)
+
+        tk.Button(cadre_boutons, text="🏠 Menu Principal",
+                  command=self.afficher_menu_principal).pack(side='left', padx=10)
 
     def afficher_progression(self):
         self.effacer_ecran()
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "📈 Analytics de Progression",
-                                             "Bientôt disponible...")
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
-        bouton_retour.pack(anchor='w', pady=10)
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "📈 Progression", "Bientôt disponible...")
+        tk.Button(self.cadre_principal, text="← Retour", command=self.afficher_menu_principal).pack(anchor='w', pady=10)
 
     def afficher_a_propos(self):
         self.effacer_ecran()
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "🌍 À propos du Kabyle", "Bientôt disponible...")
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
-        bouton_retour.pack(anchor='w', pady=10)
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "🌍 À propos", "Bientôt disponible...")
+        tk.Button(self.cadre_principal, text="← Retour", command=self.afficher_menu_principal).pack(anchor='w', pady=10)
 
 
 if __name__ == "__main__":
