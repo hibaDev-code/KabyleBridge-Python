@@ -73,20 +73,30 @@ class BotCulturel:
              "categorie": "communication", "situation": "salutations"},
 
             # Café
-            {"kabyle": "Ḥwajeɣ qahwa", "anglais": "I want coffee", "francais": "Je veux du café",
+            {"kabyle": "Ḥwajeɣ lqahwa", "anglais": "I want coffee", "francais": "Je veux du café",
              "categorie": "commande", "situation": "cafe"},
-            {"kabyle": "acehal wagi?", "anglais": "How much is this?", "francais": "C'est combien?",
+            {"kabyle": "Wagi acehal?", "anglais": "How much is this?", "francais": "C'est combien?",
              "categorie": "prix", "situation": "cafe"},
             {"kabyle": "Ḥwajeɣ aman", "anglais": "I want water", "francais": "Je veux de l'eau",
              "categorie": "commande", "situation": "cafe"},
+            {"kabyle": "yella sker ?", "anglais": "Is there sugar?", "francais": "Y a-t-il du sucre?",
+             "categorie": "demande", "situation": "cafe"},
 
             # Campus
-            {"kabyle": "Anida tella tenedlist?", "anglais": "Where is the library?",
+            {"kabyle": "Anida tella texxamt n yidlisen?", "anglais": "Where is the library?",
              "francais": "Où est la bibliothèque?", "categorie": "directions", "situation": "campus"},
+            {"kabyle": "Anida tella tesmilin ?", "anglais": "Where are the classrooms?",
+             "francais": "Où sont les salles de classe?", "categorie": "directions", "situation": "campus"},
+            {"kabyle": "Ḥwajeɣ ad ruhegh ɣer tseddawit", "anglais": "I need to go to the university",
+             "francais": "Je dois aller à l'université", "categorie": "directions", "situation": "campus"},
 
             # Marché
-            {"kabyle": "S wacehal wagi?", "anglais": "How much does it cost?", "francais": "Combien ça coûte?",
+            {"kabyle": "acehal wagi ?", "anglais": "How much does it cost?", "francais": "Combien ça coûte?",
              "categorie": "prix", "situation": "marche"},
+            {"kabyle": "Ḥwajeɣ aṭas n ccina", "anglais": "I want many oranges",
+             "francais": "Je veux beaucoup d'oranges", "categorie": "shopping", "situation": "marche"},
+            {"kabyle": "tella tafaṭurt ?", "anglais": "Is there a bill?", "francais": "Y a-t-il une facture?",
+             "categorie": "paiement", "situation": "marche"}
         ]
 
         return [Phrase(**donnees) for donnees in donnees_phrases]
@@ -96,6 +106,9 @@ class BotCulturel:
             if texte_anglais.lower() in phrase.anglais.lower():
                 return phrase
         return None
+
+    def get_phrases_situation(self, situation):
+        return [phrase for phrase in self.phrases if phrase.situation == situation]
 
 
 class ApplicationKabyleConnect:
@@ -484,10 +497,121 @@ class ApplicationKabyleConnect:
 
     def afficher_situations(self):
         self.effacer_ecran()
-        en_tete = self.creer_en_tete_degradé(self.cadre_principal, "🏛️ Apprentissage Situationnel",
-                                             "Bientôt disponible...")
-        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu", command=self.afficher_menu_principal)
+
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             "🏛️ Apprentissage Situationnel",
+                                             "Apprenez des phrases pour des scénarios du monde réel")
+
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour au Menu",
+                                  command=self.afficher_menu_principal)
         bouton_retour.pack(anchor='w', pady=10)
+
+        cadre_situations = ttk.Frame(self.cadre_principal)
+        cadre_situations.pack(fill='both', expand=True, pady=20)
+
+        for situation, description in self.bot_culturel.situations.items():
+            carte_situation = self.creer_carte(cadre_situations, 'accent1')
+            carte_situation.pack(fill='x', pady=10, padx=20)
+
+            interieur_situation = tk.Frame(carte_situation, bg=self.couleurs['accent1'], padx=20, pady=15)
+            interieur_situation.pack(fill='x')
+
+            # En-tête de situation
+            cadre_en_tete = tk.Frame(interieur_situation, bg=self.couleurs['accent1'])
+            cadre_en_tete.pack(fill='x', pady=(0, 10))
+
+            tk.Label(cadre_en_tete, text=description,
+                     font=('Arial', 14, 'bold'),
+                     bg=self.couleurs['accent1'],
+                     fg=self.couleurs['texte']).pack(side='left')
+
+            phrases = self.bot_culturel.get_phrases_situation(situation)
+            nombre_phrases = len(phrases)
+            phrases_apprises = len([p for p in phrases if p in self.etudiant_actuel.phrases_apprises])
+
+            tk.Label(cadre_en_tete, text=f"({phrases_apprises}/{nombre_phrases} apprises)",
+                     font=('Arial', 11),
+                     bg=self.couleurs['accent1'],
+                     fg='#7f8c8d').pack(side='right')
+
+            # Barre de progression
+            cadre_progression = tk.Frame(interieur_situation, bg=self.couleurs['accent1'])
+            cadre_progression.pack(fill='x', pady=5)
+
+            progression = ttk.Progressbar(cadre_progression, length=300, maximum=nombre_phrases)
+            progression.pack(side='left', fill='x', expand=True)
+            progression['value'] = phrases_apprises
+
+            # Bouton de pratique
+            tk.Button(interieur_situation, text="Pratiquer Cette Situation 🎯",
+                      font=('Arial', 10, 'bold'),
+                      bg='#2ecc71',
+                      fg='white',
+                      command=lambda s=situation: self.pratiquer_situation(s)).pack(pady=10)
+
+    def pratiquer_situation(self, situation):
+        phrases = self.bot_culturel.get_phrases_situation(situation)
+
+        self.effacer_ecran()
+        en_tete = self.creer_en_tete_degradé(self.cadre_principal,
+                                             f"📚 {self.bot_culturel.situations[situation]}",
+                                             "Apprenez et pratiquez ces phrases essentielles")
+
+        bouton_retour = tk.Button(self.cadre_principal, text="← Retour aux Situations",
+                                  command=self.afficher_situations).pack(anchor='w', pady=10)
+
+        # Créer un notebook pour les phrases
+        notebook = ttk.Notebook(self.cadre_principal)
+        notebook.pack(fill='both', expand=True, padx=20, pady=10)
+
+        for phrase in phrases:
+            cadre = tk.Frame(notebook, bg=self.couleurs['primaire'])
+            notebook.add(cadre, text=phrase.anglais)
+
+            cadre_contenu = tk.Frame(cadre, bg=self.couleurs['primaire'], padx=20, pady=20)
+            cadre_contenu.pack(fill='both', expand=True)
+
+            # Affichage de la phrase
+            tk.Label(cadre_contenu, text=phrase.kabyle,
+                     font=('Arial', 20, 'bold'),
+                     bg=self.couleurs['primaire'],
+                     fg='#2c3e50').pack(pady=10)
+
+            cadre_info = tk.Frame(cadre_contenu, bg=self.couleurs['primaire'])
+            cadre_info.pack(fill='x', pady=5)
+
+            tk.Label(cadre_info, text=f"Anglais : {phrase.anglais}",
+                     font=('Arial', 12),
+                     bg=self.couleurs['primaire'],
+                     fg=self.couleurs['texte']).pack(anchor='w')
+
+            tk.Label(cadre_info, text=f"Français : {phrase.francais}",
+                     font=('Arial', 12),
+                     bg=self.couleurs['primaire'],
+                     fg=self.couleurs['texte']).pack(anchor='w')
+
+            tk.Label(cadre_info, text=f"Catégorie : {phrase.categorie.title()}",
+                     font=('Arial', 11),
+                     bg=self.couleurs['primaire'],
+                     fg='#7f8c8d').pack(anchor='w', pady=(10, 0))
+
+            # Bouton marquer comme appris
+            if phrase not in self.etudiant_actuel.phrases_apprises:
+                tk.Button(cadre_contenu, text="✅ Marquer comme Apprise",
+                          font=('Arial', 11, 'bold'),
+                          bg='#27ae60',
+                          fg='white',
+                          command=lambda p=phrase: self.marquer_phrase_apprise(p)).pack(pady=20)
+            else:
+                tk.Label(cadre_contenu, text="🎉 Déjà Apprise !",
+                         font=('Arial', 12, 'bold'),
+                         bg=self.couleurs['primaire'],
+                         fg='#27ae60').pack(pady=20)
+
+    def marquer_phrase_apprise(self, phrase):
+        self.etudiant_actuel.ajouter_phrase_apprise(phrase)
+        messagebox.showinfo("Succès", f"'{phrase.anglais}' marquée comme apprise !")
+        self.pratiquer_situation(phrase.situation)
 
     def afficher_menu_quiz(self):
         self.effacer_ecran()
