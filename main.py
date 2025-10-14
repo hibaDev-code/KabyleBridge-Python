@@ -68,33 +68,33 @@ class CulturalBot:
              "situation": "greetings"},
             {"kabyle": "Tanemmirt", "english": "Thank you", "french": "Merci", "category": "courtesy",
              "situation": "greetings"},
-            {"kabyle": "Ur fehimegh ara", "english": "I don't understand", "french": "Je ne comprends pas",
+            {"kabyle": "Ur fhimeɣ ara", "english": "I don't understand", "french": "Je ne comprends pas",
              "category": "communication", "situation": "greetings"},
 
             # Cafe
-            {"kabyle": "Ḥwajeɣ lqahwa", "english": "I want coffee", "french": "Je veux du café", "category": "ordering",
+            {"kabyle": "Bɣiɣ lqahwa", "english": "I want coffee", "french": "Je veux du café", "category": "ordering",
              "situation": "cafe"},
-            {"kabyle": "Wagi acehal i yeswa?", "english": "How much is this?", "french": "C'est combien?",
+            {"kabyle": "Acḥal i yeswa wa?", "english": "How much is this?", "french": "C'est combien?",
              "category": "price", "situation": "cafe"},
-            {"kabyle": "Ḥwajeɣ aman", "english": "I want water", "french": "Je veux de l'eau", "category": "ordering",
+            {"kabyle": "Bɣiɣ aman", "english": "I want water", "french": "Je veux de l'eau", "category": "ordering",
              "situation": "cafe"},
-            {"kabyle": "yella sker?", "english": "Is there sugar?", "french": "Y a-t-il du sucre?",
+            {"kabyle": "Yella skeṛ?", "english": "Is there sugar?", "french": "Y a-t-il du sucre?",
              "category": "request", "situation": "cafe"},
 
             # Campus
-            {"kabyle": "Anida tella texxamt n yidlisen?", "english": "Where is the library?",
+            {"kabyle": "Anida i tella temkarḍit?", "english": "Where is the library?",
              "french": "Où est la bibliothèque?", "category": "directions", "situation": "campus"},
-            {"kabyle": "Anida tella tesmilt?", "english": "Where are the classrooms?",
+            {"kabyle": "Anida i llant tneɣra?", "english": "Where are the classrooms?",
              "french": "Où sont les salles de classe?", "category": "directions", "situation": "campus"},
-            {"kabyle": "Ḥwajeɣ ad dduɣ ɣer tseddawit", "english": "I need to go to the university",
+            {"kabyle": "Ilaq ad ruḥeɣ ɣer tesdawit", "english": "I need to go to the university",
              "french": "Je dois aller à l'université", "category": "directions", "situation": "campus"},
 
             # Market
-            {"kabyle": "S wacehal ?", "english": "How much does it cost?", "french": "Combien ça coûte?",
+            {"kabyle": "Acḥal i yeswa?", "english": "How much does it cost?", "french": "Combien ça coûte?",
              "category": "price", "situation": "market"},
             {"kabyle": "Ḥwajeɣ aṭas n ccina", "english": "I want many oranges",
              "french": "Je veux beaucoup d'oranges", "category": "shopping", "situation": "market"},
-            {"kabyle": "tella tfaturt ?", "english": "Is there a bill?", "french": "Y a-t-il une facture?",
+            {"kabyle": "Tella tfaturt?", "english": "Is there a bill?", "french": "Y a-t-il une facture?",
              "category": "payment", "situation": "market"}
         ]
 
@@ -346,7 +346,7 @@ Last Activity: {self.current_student.progress['last_activity'] or 'Never'}"""
                 for p in similar[:3]:
                     response += f"• {p.english} -> {p.kabyle}\n"
             else:
-                response += "• Hello -> Azul\n• Thank you -> Tanemmirt\n• How much? -> S wemek ayɣa?"
+                response += "• Hello -> Azul\n• Thank you -> Tanemmirt\n• How much? -> S wacḥal?"
 
         self.response_text.insert(1.0, response)
         self.response_text.config(state='disabled')
