@@ -12,7 +12,7 @@ Tapez un mot ou une phrase en français et obtenez :
 * la traduction kabyle
 * la traduction anglaise
 * Le contexte d’utilisation
-* 
+  
 
 📚 2. Apprentissage situationnel
 
