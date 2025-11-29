@@ -17,16 +17,16 @@ class Phrase:
         self.situation = situation
 
 PHRASES = [
-    Phrase("Azul", "Bonjour", "Hello", "salutations"),
+    Phrase("Azul", "Salut", "Hello", "salutations"),
     Phrase("Tanemmirt", "Merci", "Thank you", "salutations"),
-    Phrase("Sbaḥ lxir", "Bonjour (matin)", "Good morning", "salutations"),
-    Phrase("Ur tettwaɛǧib ara", "Je ne comprends pas", "I don't understand", "salutations"),
-    Phrase("Ḥwajeɣ lqahwa", "Je voudrais un café", "I want coffee", "café"),
+    Phrase("Sbah lxir", "Bonjour", "Good morning", "salutations"),
+    Phrase("Ur fehimegh ara", "Je ne comprends pas", "I don't understand", "salutations"),
+    Phrase("Hwajegh lqahwa", "Je voudrais un café", "I want coffee", "café"),
     Phrase("Wagi acehal i yeswa?", "Combien ça coûte ?", "How much is this?", "café"),
     Phrase("Anida tella texxamt n yidlisen?", "Où est la bibliothèque ?", "Where is the library?", "campus"),
-    Phrase("Anida tettɛawed tesmilt?", "Où sont les salles de classe ?", "Where are the classrooms?", "campus"),
+    Phrase("Anida lant tesmilin ?", "Où sont les salles de classe ?", "Where are the classrooms?", "campus"),
     Phrase("S wacehal ?", "C’est combien ?", "How much does it cost?", "marché"),
-    Phrase("Ḥwajeɣ aṭas n ccina", "Je voudrais beaucoup d’oranges", "I want many oranges", "marché")
+    Phrase("Hwajegh aṭas n ccina", "Je voudrais beaucoup d’oranges", "I want many oranges", "marché")
 ]
 
 # =============== APPLICATION ===============
